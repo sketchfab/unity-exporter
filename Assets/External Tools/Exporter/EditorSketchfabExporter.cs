@@ -34,6 +34,7 @@ public class Sketchfab : MonoBehaviour {
 		postForm.AddField("title", title);
         postForm.AddField("description", description);
 		postForm.AddField("filenameModel", "Unity.zip");
+		postForm.AddField("source", "Unity-exporter");
 		postForm.AddField("tags", tags);
 		postForm.AddField("token", token);
 		postForm.AddField("private", model_private ? "1" : "0");
