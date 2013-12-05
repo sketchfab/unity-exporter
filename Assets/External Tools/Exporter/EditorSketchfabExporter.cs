@@ -290,6 +290,7 @@ public class EditorSketchfabExporter : ScriptableWizard
     {
         Dictionary<string, ObjMaterial> materialList = PrepareFileWrite();
  
+        System.IO.Directory.CreateDirectory(folder);
         string path = folder + Path.DirectorySeparatorChar + filename + ".obj";
         using (StreamWriter sw = new StreamWriter(path)) {
             sw.Write("mtllib ." + Path.DirectorySeparatorChar + filename + ".mtl\n");
