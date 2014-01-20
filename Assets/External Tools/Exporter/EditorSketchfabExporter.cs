@@ -322,7 +322,7 @@ public class EditorSketchfabExporter : ScriptableWizard
         return true;
     }
 
-    [MenuItem ("Custom/Export/Export to Sketchfab")]
+    [MenuItem ("Window/Export to Sketchfab")]
     static void ExportToSketchfab()
     {
         ScriptableWizard.DisplayWizard("Sketchfab export parameters...", typeof(EditorSketchfabExporter), "Cancel", "Upload");
