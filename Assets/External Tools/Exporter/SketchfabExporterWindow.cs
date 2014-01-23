@@ -62,7 +62,7 @@ public class SketchfabExporterWww : MonoBehaviour {
 		if (www == null)
 			return 0.0f;
 		
-		return 0.75f * www.uploadProgress + 0.25f * www.progress;
+		return 0.99f * www.uploadProgress + 0.01f * www.progress;
 	}
 	
 	public string errored() {
@@ -449,8 +449,8 @@ public class SketchfabExporterWindow : EditorWindow
 		GUILayout.Label("Sketchfab settings", EditorStyles.boldLabel);
 		param_token = EditorGUILayout.TextField("API Token", param_token);
 		EditorGUILayout.BeginHorizontal();
-		EditorGUILayout.PrefixLabel("can be obtained on your dashboard");
-		if(GUILayout.Button("dashboard"))
+		EditorGUILayout.PrefixLabel("find your token");
+		if(GUILayout.Button("open dashboard"))
 			Application.OpenURL(dashboard_url);
 		EditorGUILayout.EndHorizontal();
 
