@@ -3,9 +3,9 @@ Sketchfab unity exporter
 
 The Sketchfab exporter for Unity is a script that helps uploading models from a Unity project to a Sketchfab model in just a few clicks.
 
-Release date: Nov 22, 2014  
-Last update: Nov 22, 2014  
-Unity version: 4.2.2f1  
+Release date: Nov 22, 2013  
+Last update: Apr 23, 2014  
+Unity version: 4.3.4f1  
 Author: Clément Léger (clement@sketchfab.com), Sketchfab (support@sketchfab.com)
 
 Installation
