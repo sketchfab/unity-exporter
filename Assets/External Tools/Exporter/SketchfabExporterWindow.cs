@@ -112,13 +112,11 @@ public class SketchfabExporter
 		param_password = password;
 	}
 
-	public void export() {
+	public void export(string filename) {
 		exportDirectory = Application.temporaryCachePath + Path.DirectorySeparatorChar + "SketchfabExport";
 		clean();
 		zip = new ZipFile();
 
-		FileInfo fi = new FileInfo(EditorApplication.currentScene);
-		string filename = fi.Name + "_" + meshList.Count;
 		MeshesToFile(meshList, exportDirectory, filename);
 		System.IO.Directory.CreateDirectory(exportDirectory);
 
@@ -389,7 +387,7 @@ public class SketchfabExporterWindow : EditorWindow
 	private string param_password = "";
 	private string param_token = "";
 
-	private static string dashboard_url = "https://sketchfab.com/dashboard";
+	private static string apitoken_url = "https://sketchfab.com/settings/password";
 	private SketchfabExporter exporter;
 	private bool finished = false;
 
@@ -400,8 +398,16 @@ public class SketchfabExporterWindow : EditorWindow
 	}
 
 	void initialize() {
-		FileInfo fi = new FileInfo(EditorApplication.currentScene);
-		param_title = fi.Name;
+		param_title = getSceneName();
+	}
+
+	private string getSceneName() {
+		if(EditorApplication.currentScene.Length > 0) {
+			FileInfo fi = new FileInfo(EditorApplication.currentScene);
+			return fi.Name;
+		} else {
+			return "UnsavedScene";
+		}
 	}
 	
 	void export() {
@@ -413,7 +419,7 @@ public class SketchfabExporterWindow : EditorWindow
 		}
 		
 		if (param_token.Trim().Length == 0) {
-			EditorUtility.DisplayDialog("Invalid token!", "Your Sketchfab API Token identifies yourself to Sketchfab. You can get this token at https://sketchfab.com/dashboard.", "");
+			EditorUtility.DisplayDialog("Invalid token!", "Your Sketchfab API Token identifies yourself to Sketchfab. You can get this token at https://sketchfab.com/settings/password.", "");
 			return;
 		}
 
@@ -432,7 +438,7 @@ public class SketchfabExporterWindow : EditorWindow
 		
 		if (meshList.Count > 0) {
 			exporter = new SketchfabExporter(param_token, meshList, param_title, param_description, param_tags, param_private, param_password);
-			exporter.export();
+			exporter.export(getSceneName() + "_" + meshList.Count);
 		} else {
 			EditorUtility.DisplayDialog("Objects not exported", "Make sure at least some of your selected objects have mesh filters!", "");
 		}
@@ -449,9 +455,9 @@ public class SketchfabExporterWindow : EditorWindow
 		GUILayout.Label("Sketchfab settings", EditorStyles.boldLabel);
 		param_token = EditorGUILayout.TextField("API Token", param_token);
 		EditorGUILayout.BeginHorizontal();
-		EditorGUILayout.PrefixLabel("find your token");
-		if(GUILayout.Button("open dashboard"))
-			Application.OpenURL(dashboard_url);
+		EditorGUILayout.PrefixLabel("find your API token");
+		if(GUILayout.Button("my profile"))
+			Application.OpenURL(apitoken_url);
 		EditorGUILayout.EndHorizontal();
 
 		EditorGUILayout.Space();
