@@ -18,8 +18,8 @@ You should have the files :
 
 The Unity project is automatically updated so the installation is done when a menu "Custom" should appear and reveal a "Export to Sketchfab" option.
 
-Your project must build for the Web Player as it disallows the manipulation of obj/zip files.
-To switch the build, goto File menu, and click on the Build Settings... entry. Then select a different platform than Web Player, for instance PC, Mac & Linux Standalone.
+Your project must not build for the Web Player as it disallows the manipulation of obj/zip files.
+To switch the build, go to File menu, and click on the Build Settings... entry. Then select a different platform than Web Player, for instance PC, Mac & Linux Standalone.
 
 Usage
 -----
