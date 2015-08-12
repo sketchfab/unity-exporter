@@ -432,7 +432,8 @@ namespace SimpleJSON
             throw new Exception("Can't use compressed functions. You need include the SharpZipLib and uncomment the define at the top of SimpleJSON");
         }
         #endif
- 
+
+        #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX // edit: added Platform Dependent Compilation - win or osx standalone - will not get called anyway if false
         public void SaveToFile(string aFileName)
         {
             System.IO.Directory.CreateDirectory((new System.IO.FileInfo(aFileName)).Directory.FullName);
@@ -441,6 +442,8 @@ namespace SimpleJSON
                 SaveToStream(F);
             }
         }
+        #endif
+
         public string SaveToBase64()
         {
             using (var stream = new System.IO.MemoryStream())

@@ -19,14 +19,17 @@ public class SketchfabExporterWww : MonoBehaviour {
 	private string api_url = "https://api.sketchfab.com/v1/models";
 	private WWW www = null;
 	
-	public IEnumerator UploadFileCo(string localFileName, string token, bool model_private, string title, string description, string tags) {
-		byte[] data = File.ReadAllBytes(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + localFileName);
+	public IEnumerator UploadFileCo(string localFileName, string token, bool model_private, string title, string description, string tags)
+    {
+        #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX // edit: added Platform Dependent Compilation - win or osx standalone - will not get called anyway if false
+        byte[] data = File.ReadAllBytes(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + localFileName);
 		if (data.Length > 0) {
 			Debug.Log("Loaded file successfully : " + data.Length + " bytes");
 		} else {
 			Debug.Log("Open file error");
 			yield break;
 		}
+
 		
 		WWWForm postForm = new WWWForm();
 		postForm.AddBinaryData("fileModel",data,localFileName, "application/zip");
@@ -40,8 +43,10 @@ public class SketchfabExporterWww : MonoBehaviour {
 		
 		www = new WWW(api_url, postForm);        
 		
-		yield return www;
-	}
+        #endif
+        yield return www;
+
+        }
 	
 	public string getUrlID() {
 		if (www.error == null) {
@@ -112,11 +117,13 @@ public class SketchfabExporter
 		param_password = password;
 	}
 
-	public void export(string filename) {
+	public void export() {
 		exportDirectory = Application.temporaryCachePath + Path.DirectorySeparatorChar + "SketchfabExport";
 		clean();
 		zip = new ZipFile();
 
+		FileInfo fi = new FileInfo(EditorApplication.currentScene);
+		string filename = fi.Name + "_" + meshList.Count;
 		MeshesToFile(meshList, exportDirectory, filename);
 		System.IO.Directory.CreateDirectory(exportDirectory);
 
@@ -134,7 +141,7 @@ public class SketchfabExporter
 	private static string SkinnedMeshRendererFilterToString(SkinnedMeshRenderer mf, Dictionary<string, ObjMaterial> materialList)
 	{
 		Mesh m = mf.sharedMesh;
-		Material[] mats = mf.renderer.sharedMaterials;
+		Material[] mats = mf.GetComponent<Renderer>().sharedMaterials;
 		
 		StringBuilder sb = new StringBuilder();
 		
@@ -165,7 +172,7 @@ public class SketchfabExporter
 	private static string MeshFilterToString(MeshFilter mf, Dictionary<string, ObjMaterial> materialList) 
 	{
 		Mesh m = mf.sharedMesh;
-		Material[] mats = mf.renderer.sharedMaterials;
+		Material[] mats = mf.GetComponent<Renderer>().sharedMaterials;
 		
 		StringBuilder sb = new StringBuilder();
 		
@@ -387,39 +394,38 @@ public class SketchfabExporterWindow : EditorWindow
 	private string param_password = "";
 	private string param_token = "";
 
-	private static string apitoken_url = "https://sketchfab.com/settings/password";
+	private static string dashboard_url = "https://sketchfab.com/dashboard";
 	private SketchfabExporter exporter;
 	private bool finished = false;
 
-	[MenuItem ("GameObject/Export selection to Sketchfab...")]
-	static void Init() {
-		SketchfabExporterWindow window = (SketchfabExporterWindow)EditorWindow.GetWindow (typeof(SketchfabExporterWindow));
+    [MenuItem("Window/Export selection to Sketchfab...")]
+	static void Init()
+    {
+    #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX // edit: added Platform Dependent Compilation - win or osx standalone
+        SketchfabExporterWindow window = (SketchfabExporterWindow)EditorWindow.GetWindow (typeof(SketchfabExporterWindow));
 		window.initialize();
-	}
+    #else // and error dialog if not standalone
+        EditorUtility.DisplayDialog("Error", "Your build target must be set to standalone", "Okay");
+    #endif
+    }
+
+
 
 	void initialize() {
-		param_title = getSceneName();
-	}
-
-	private string getSceneName() {
-		if(EditorApplication.currentScene.Length > 0) {
-			FileInfo fi = new FileInfo(EditorApplication.currentScene);
-			return fi.Name;
-		} else {
-			return "UnsavedScene";
-		}
+		FileInfo fi = new FileInfo(EditorApplication.currentScene);
+		param_title = fi.Name;
 	}
 	
 	void export() {
 		finished = false;
 		Transform[] selection = Selection.GetTransforms(SelectionMode.Editable | SelectionMode.ExcludePrefab);
 		if (selection.Length == 0) {
-			EditorUtility.DisplayDialog("No source object selected!", "Please select one or more target objects", "");
+			EditorUtility.DisplayDialog("No source object selected!", "Please select one or more target objects", "Okay :(");
 			return;
 		}
 		
 		if (param_token.Trim().Length == 0) {
-			EditorUtility.DisplayDialog("Invalid token!", "Your Sketchfab API Token identifies yourself to Sketchfab. You can get this token at https://sketchfab.com/settings/password.", "");
+			EditorUtility.DisplayDialog("Invalid token!", "Your Sketchfab API Token identifies yourself to Sketchfab. You can get this token at https://sketchfab.com/dashboard.", "");
 			return;
 		}
 
@@ -438,26 +444,29 @@ public class SketchfabExporterWindow : EditorWindow
 		
 		if (meshList.Count > 0) {
 			exporter = new SketchfabExporter(param_token, meshList, param_title, param_description, param_tags, param_private, param_password);
-			exporter.export(getSceneName() + "_" + meshList.Count);
+			exporter.export();
 		} else {
-			EditorUtility.DisplayDialog("Objects not exported", "Make sure at least some of your selected objects have mesh filters!", "");
+			EditorUtility.DisplayDialog("Objects not exported", "Make sure at least some of your selected objects have mesh filters!", "Okay :(");
 		}
 	}
 	
 	void OnGUI() {
 		GUILayout.Label("Model settings", EditorStyles.boldLabel);
-		param_title = EditorGUILayout.TextField("Title*", param_title);
+		param_title = EditorGUILayout.TextField("Title (Scene name)", param_title); //edit: added name source
 		param_description = EditorGUILayout.TextField("Description", param_description);
 		param_tags = EditorGUILayout.TextField("Tags", param_tags);
-		param_private = EditorGUILayout.Toggle("Private", param_private);
+        
+        // edit: contained the password field in a toggle group
+        param_private = EditorGUILayout.BeginToggleGroup("Private", param_private);
 		param_password = EditorGUILayout.PasswordField("Password", param_password);
+        EditorGUILayout.EndToggleGroup();
 
 		GUILayout.Label("Sketchfab settings", EditorStyles.boldLabel);
 		param_token = EditorGUILayout.TextField("API Token", param_token);
 		EditorGUILayout.BeginHorizontal();
-		EditorGUILayout.PrefixLabel("find your API token");
-		if(GUILayout.Button("my profile"))
-			Application.OpenURL(apitoken_url);
+		EditorGUILayout.PrefixLabel("find your token");
+		if(GUILayout.Button("open dashboard"))
+			Application.OpenURL(dashboard_url);
 		EditorGUILayout.EndHorizontal();
 
 		EditorGUILayout.Space();
