@@ -21,7 +21,7 @@ public class SketchfabExporterWww : MonoBehaviour {
 	
 	public IEnumerator UploadFileCo(string localFileName, string token, bool model_private, string title, string description, string tags)
     {
-        #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX // edit: added Platform Dependent Compilation - win or osx standalone - will not get called anyway if false
+        //#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX  edit: removed  Platform dependency throwing error on oculus builds
         byte[] data = File.ReadAllBytes(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + localFileName);
 		if (data.Length > 0) {
 			Debug.Log("Loaded file successfully : " + data.Length + " bytes");
@@ -43,7 +43,7 @@ public class SketchfabExporterWww : MonoBehaviour {
 		
 		www = new WWW(api_url, postForm);        
 		
-        #endif
+        //#endif
         yield return www;
 
         }
